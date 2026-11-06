@@ -1,0 +1,82 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>АвтоКаталог — демо</title><style>
+body{font-family:system-ui,sans-serif;background:#f4f6f9;margin:0;color:#14181d}
+.w{max-width:1080px;margin:auto;padding:0 18px}
+header{background:#fff;border-bottom:1px solid #e4e7ec;padding:14px 0}
+.nav{display:flex;justify-content:space-between;align-items:center}
+.logo{font-weight:800;font-size:19px}.logo i{color:#0a66ff;font-style:normal}
+.sync{font-size:13px;color:#6b7280}
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 12px;align-items:center}
+select,input{font:inherit;padding:9px 12px;border:1px solid #d5dae1;border-radius:9px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;padding-bottom:36px}
+.card{background:#fff;border:1px solid #e4e7ec;border-radius:14px;padding:14px}
+.ttl{font-weight:700}.sub{color:#6b7280;font-size:13px;margin-top:4px}
+.price{font-weight:800;font-size:17px;margin-top:8px}
+.tag{display:inline-block;background:#eef4ff;color:#0a66ff;font-size:12px;padding:3px 9px;border-radius:99px;margin-top:8px}
+.empty{padding:36px;text-align:center;color:#6b7280;grid-column:1/-1}
+.btn{border:0;background:#0a66ff;color:#fff;padding:10px 18px;border-radius:9px;font-weight:600;cursor:pointer}
+footer{border-top:1px solid #e4e7ec;background:#fff;padding:18px 0;color:#6b7280;text-align:center;font-size:13px}
+</style></head><body>
+fff;padding:18px 0;color:#6b7280;text-align:center;font-size:14px}
+</style></head><body>
+<header><div class="w nav"><div class="logo">Авто<i>Каталог</i></div><div class="sync"><span class="dot"></span><span id="syncinfo">подключение к Google-таблице…</span></div></div></header>
+<div class="w">
+<div class="hero"><h1>Каталог автомобилей</h1><p>Данные подгружаются из Google-таблицы и обновляются автоматически каждую минуту.</p></div>
+<div class="bar">
+<select id="fBrand" onchange="render()"><option value="">Все марки</option><option>Toyota</option><option>BMW</option><option>Kia</option><option>Hyundai</option><option>Volvo</option></select>
+<select id="fMax" onchange="render()"><option value="">Любая цена</option><option value="1500000">до 1.5 млн</option><option value="2500000">до 2.5 млн</option><option value="4000000">до 4 млн</option></select>
+<input id="fq" placeholder="Поиск по модели…" oninput="render()" style="flex:1;min-width:160px">
+<span id="cnt" style="font-size:13px;color:#6b7280"></span>
+</div>
+<div class="grid" id="grid"></div>
+<div id="lead" style="background:#fff;border:1px solid #e4e7ec;border-radius:16px;padding:26px;margin-bottom:40px">
+<h2 style="margin-bottom:6px">Заявка на подбор</h2>
+<p style="color:#5b6472;margin-bottom:14px">Оставьте контакты — подберём автомобиль под бюджет.</p>
+<form onsubmit="return sendLead(event)">
+<input id="ln" placeholder="Имя" required style="width:220px;margin-right:8px">
+<input id="lp" placeholder="Телефон" required style="width:220px;margin-right:8px">
+<button class="btn" type="submit">Отправить</button>
+</form>
+<div id="lok" style="display:none;color:#12b76a;margin-top:10px;font-weight:600">Заявка принята!</div>
+</div>
+</div>
+<footer><div class="w">Демо-каталог авто · прототип · данные из Google-таблицы</div></footer>
+<script>
+const SHEET_URL='';
+const CARS=[
+{b:'Toyota',m:'Camry',y:2021,p:2100000,mi:45000},
+{b:'Kia',m:'K5',y:2020,p:1750000,mi:62000},
+{b:'Hyundai',m:'Tucson',y:2022,p:2600000,mi:28000},
+{b:'BMW',m:'3 series',y:2019,p:2400000,mi:78000},
+{b:'Mercedes',m:'E-class',y:2020,p:3200000,mi:54000},
+{b:'Skoda',m:'Octavia',y:2021,p:1650000,mi:39000},
+{b:'VW',m:'Tiguan',y:2019,p:1950000,mi:83000},
+{b:'Lada',m:'Vesta',y:2022,p:1050000,mi:21000},
+{b:'Renault',m:'Arkana',y:2021,p:1550000,mi:36000},
+{b:'Nissan',m:'Qashqai',y:2018,p:1300000,mi:96000}];
+
+function fmt(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₽';}
+function render(){
+var bv=(document.getElementById('fBrand')||{}).value||'';
+var mv=(document.getElementById('fMax')||{}).value||'';
+var qv=((document.getElementById('fq')||{}).value||'').toLowerCase();
+var g=document.getElementById('grid');var cnt=document.getElementById('cnt');if(!g)return;
+var arr=CARS.filter(function(c){return (!bv||c.b===bv)&&(!mv||c.p<=+mv)&&(!qv||(c.b+' '+c.m).toLowerCase().indexOf(qv)>=0);});
+cnt.textContent=arr.length+' из '+CARS.length+' авто';
+g.innerHTML=arr.map(function(c){return '<div class="card"><div class="thumb">'+c.b.charAt(0)+'</div><div class="body"><div class="ttl">'+c.b+' '+c.m+'</div><div class="meta">'+c.y+' г · '+fmt(c.mi)+' км</div><div class="price">'+fmt(c.p)+'</div></div></div>';}).join('');
+if(!arr.length)g.innerHTML='<div style="grid-column:1/-1;color:#6b7280;padding:20px">Ничего не найдено</div>';
+}
+
+function sendLead(e){e.preventDefault();
+var n=document.getElementById('ln'),p=document.getElementById('lp'),ok=document.getElementById('lok');
+if(n&&p&&ok){ok.style.display='block';n.value='';p.value='';}
+return false;}
+function sync(){
+var s=document.getElementById('syncinfo');
+if(s)s.textContent='данные актуальны · локальный каталог';
+}
+render();sync();
+setInterval(function(){sync();},60000);
+</script>
+</body></html>
